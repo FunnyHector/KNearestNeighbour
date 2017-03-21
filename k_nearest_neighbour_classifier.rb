@@ -124,15 +124,35 @@ class KNearestNeighbourClassifier
   def initialise_clusters
     @training_set.each { |instance| instance.given_label = nil } # remove the label first
 
-    @clusters = @training_set.sample(3).map { |mean| [mean.clone, []] }.to_h
+    # two options:
+
+    # 1. randomly select three initial means
+    # @clusters = @training_set.sample(3).map { |mean| [mean.clone, []] }.to_h
+
+    # 2. use given indexes
+    @clusters = @training_set.values_at(15, 40, 65).map { |mean| [mean.clone, []] }.to_h
   end
 
   def converge_clusters
-    @iteration_counter  = 1
+    @iteration_counter = 1
     @updated = false
 
     loop do
       allocate_instances
+
+      # ============ for testing ===============
+      puts "===================================="
+      puts "Iteration: #{@iteration_counter}"
+
+      @clusters.keys.each_with_index do |mean, index|
+        puts "Mean #{index + 1}: #{mean}"
+        puts "Cluster: #{@clusters[mean].size} instances"
+        @clusters[mean].each do |instance|
+          puts "  #{instance}"
+        end
+      end
+      # ========================================
+
       update_centroids
 
       if @updated
@@ -169,22 +189,22 @@ class KNearestNeighbourClassifier
 
       if (mean.sepal_length - average_sepal_length).abs >= FLOAT_TOLERANCE
         mean.sepal_length = average_sepal_length
-        @updated          = true
+        @updated = true
       end
 
       if (mean.sepal_width - average_sepal_width).abs >= FLOAT_TOLERANCE
         mean.sepal_width = average_sepal_width
-        @updated         = true
+        @updated = true
       end
 
       if (mean.petal_length - average_petal_length).abs >= FLOAT_TOLERANCE
         mean.petal_length = average_petal_length
-        @updated          = true
+        @updated = true
       end
 
       if (mean.petal_width - average_petal_width).abs >= FLOAT_TOLERANCE
         mean.petal_width = average_petal_width
-        @updated         = true
+        @updated = true
       end
     end
   end

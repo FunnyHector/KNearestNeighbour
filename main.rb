@@ -13,6 +13,7 @@ classifier = KNearestNeighbourClassifier.new(training_set_file, test_set_file, k
 
 classifier.read_data
 classifier.estimate_ranges
-classifier.classify_all
+classifier.cluster_training_set
+classifier.classify_test_set
 
 classifier.show_result

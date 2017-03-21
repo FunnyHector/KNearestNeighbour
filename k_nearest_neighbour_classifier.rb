@@ -1,4 +1,7 @@
 class KNearestNeighbourClassifier
+  NUM_CLUSTER     = 3
+  FLOAT_TOLERANCE = 0.00000001
+
   attr_reader :k_value, :sepal_length_range, :sepal_width_range, :petal_length_range, :petal_width_range
 
   def initialize(training_set_file, test_set_file, k_value)
@@ -26,7 +29,13 @@ class KNearestNeighbourClassifier
     @petal_width_range  = petal_width_collection.max - petal_width_collection.min
   end
 
-  def classify_all
+  def cluster_training_set
+    initialise_clusters
+    converge_clusters
+    label_training_set_by_clusters
+  end
+
+  def classify_test_set
     @test_set.each { |instance| classify!(instance) }
   end
 
@@ -109,6 +118,82 @@ class KNearestNeighbourClassifier
       majority_classes.sample # if more than one majority classes, we randomly choose one
     else
       majority_classes[0]
+    end
+  end
+
+  def initialise_clusters
+    @training_set.each { |instance| instance.given_label = nil } # remove the label first
+
+    @clusters = @training_set.sample(3).map { |mean| [mean.clone, []] }.to_h
+  end
+
+  def converge_clusters
+    @iteration_counter  = 1
+    @updated = false
+
+    loop do
+      allocate_instances
+      update_centroids
+
+      if @updated
+        @iteration_counter += 1
+        @clusters.each { |_, cluster| cluster.clear }
+      else
+        break
+      end
+    end
+  end
+
+  def allocate_instances
+    k_means = @clusters.keys
+
+    @training_set.each do |instance|
+      closest_mean = k_means.min_by { |mean| distance_between(mean, instance) }
+      @clusters[closest_mean] << instance
+    end
+  end
+
+  def update_centroids
+    @updated = false
+
+    @clusters.each do |mean, cluster|
+      sepal_length_collection = cluster.map(&:sepal_length)
+      sepal_width_collection  = cluster.map(&:sepal_width)
+      petal_length_collection = cluster.map(&:petal_length)
+      petal_width_collection  = cluster.map(&:petal_width)
+
+      average_sepal_length = sepal_length_collection.reduce(&:+).to_f / sepal_length_collection.size
+      average_sepal_width  = sepal_width_collection.reduce(&:+).to_f / sepal_width_collection.size
+      average_petal_length = petal_length_collection.reduce(&:+).to_f / petal_length_collection.size
+      average_petal_width  = petal_width_collection.reduce(&:+).to_f / petal_width_collection.size
+
+      if (mean.sepal_length - average_sepal_length).abs >= FLOAT_TOLERANCE
+        mean.sepal_length = average_sepal_length
+        @updated          = true
+      end
+
+      if (mean.sepal_width - average_sepal_width).abs >= FLOAT_TOLERANCE
+        mean.sepal_width = average_sepal_width
+        @updated         = true
+      end
+
+      if (mean.petal_length - average_petal_length).abs >= FLOAT_TOLERANCE
+        mean.petal_length = average_petal_length
+        @updated          = true
+      end
+
+      if (mean.petal_width - average_petal_width).abs >= FLOAT_TOLERANCE
+        mean.petal_width = average_petal_width
+        @updated         = true
+      end
+    end
+  end
+
+  def label_training_set_by_clusters # here we label them like "label_1", "label_2", ...
+    @clusters.values.each_with_index do |cluster, index|
+      cluster.each do |instance|
+        instance.given_label = "label_#{index + 1}"
+      end
     end
   end
 end

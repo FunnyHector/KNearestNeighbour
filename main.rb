@@ -15,10 +15,10 @@ num_cluster       = ARGV[3].nil? ? DEFAULT_NUM_CLUSTER : ARGV[3].to_i
 # prompt the user, ask if k-means clustering needs to be done
 puts "Do you want to do k-means clustering? (Y/N)"
 
-user_input = gets.strip.upcase
+user_input = STDIN.gets.strip.upcase
 while user_input != "Y" && user_input != "N"
   puts "Please only type \"Y/N\":"
-  user_input = gets.strip.upcase
+  user_input = STDIN.gets.strip.upcase
 end
 
 @do_cluster = { Y: true, N: false }.fetch(user_input.to_sym)

@@ -1,18 +1,19 @@
 class KNearestNeighbourClassifier
-  NUM_CLUSTER     = 3
   FLOAT_TOLERANCE = 0.00000001
 
   attr_reader :k_value, :sepal_length_range, :sepal_width_range, :petal_length_range, :petal_width_range
 
-  def initialize(training_set_file, test_set_file, k_value)
-    @training_set_file = training_set_file
-    @test_set_file     = test_set_file
-    @k_value           = k_value
+  def initialize(training_file, test_file, k_value, num_clusters, do_cluster)
+    @training_file = training_file
+    @test_file     = test_file
+    @k_value       = k_value
+    @num_clusters  = num_clusters
+    @do_cluster    = do_cluster
   end
 
   def read_data
-    read_training_set
-    read_test_set
+    read_training_data
+    read_test_data
   end
 
   def estimate_ranges
@@ -40,28 +41,40 @@ class KNearestNeighbourClassifier
   end
 
   def show_result
-    num_of_mismatch = @test_set.count(&:classified_class_mismatched?)
-    test_set_size   = @test_set.size
-    accuracy        = ((test_set_size - num_of_mismatch).to_f / test_set_size * 100).round(2)
-
-    summary = <<~SUMMARY
-      K Value: #{k_value}
-      Training data set size: #{@training_set.size}
-      Test data set size: #{test_set_size}
-      Number of mismatched classification: #{num_of_mismatch}
-      Accuracy: #{accuracy}%
-    SUMMARY
-
-    result = "=============== Results of classification ===============\n"
-    result << ["No.", "sepal_length", "sepal_width", "petal_length", "petal_width", "given_label", "classified_class"].join("  ") << "\n"
+    result = "========== Results of classification (test set) ==========\n"
+    result << ["No.", "sepal_length", "sepal_width", "petal_length", "petal_width", "label", "classified_class"].join("  ") << "\n"
 
     @test_set.each_with_index do |instance, index|
-      result << ["#{index + 1}", "#{instance.sepal_length}", "#{instance.sepal_width}", "#{instance.petal_length}", "#{instance.petal_width}", "#{instance.given_label}", "#{instance.classified_class}"].join("  ")
+      result << ["%02d" % (index + 1), "#{instance.sepal_length}", "#{instance.sepal_width}", "#{instance.petal_length}", "#{instance.petal_width}", "#{instance.label}", "#{instance.classified_class}"].join("  ")
       result << "    # classification mismatched" if instance.classified_class_mismatched?
       result << "\n"
     end
 
-    result << "\n======================= Summary =======================\n"
+    if @do_cluster
+      result << "\n========== Results of clustering (training set) ==========\n"
+      result << ["No.", "sepal_length", "sepal_width", "petal_length", "petal_width", "label", "clustered_class"].join("  ") << "\n"
+
+      @training_set.each_with_index do |instance, index|
+        result << ["%02d" % (index + 1), "#{instance.sepal_length}", "#{instance.sepal_width}", "#{instance.petal_length}", "#{instance.petal_width}", "#{instance.label}", "#{instance.clustered_class}"].join("  ")
+        result << "\n"
+      end
+    end
+
+    # some key figures for summary
+    num_of_mismatch = @test_set.count(&:classified_class_mismatched?)
+    test_set_size   = @test_set.size
+    accuracy        = ((test_set_size - num_of_mismatch).to_f / test_set_size * 100).round(2)
+
+    summary = "".tap do |str|
+      str << "\n======================= Summary =======================\n"
+      str << "K Value: #{k_value}\n"
+      str << "Training data size: #{@training_set.size}\n"
+      str << "Test data size: #{test_set_size}\n"
+      str << "Number of mismatched classification: #{num_of_mismatch}\n"
+      str << "Classification accuracy: #{accuracy}%\n"
+      str << "Iterations of k-means clustering: #{@iteration_counter}\n" if @do_cluster
+    end
+
     result << summary
 
     File.write("./output.txt", result)
@@ -72,22 +85,22 @@ class KNearestNeighbourClassifier
 
   private
 
-  def read_training_set
-    @training_set = File.readlines(@training_set_file).reject { |line| line.strip.empty? }.map do |line|
+  def read_training_data
+    @training_set = File.readlines(@training_file).reject { |line| line.strip.empty? }.map do |line|
       values = line.split
       IrisInstance.new(values[0].to_f, values[1].to_f, values[2].to_f, values[3].to_f, values[4])
     end
   rescue Exception => e
-    puts "Error occurred when reading training set data. Exception message: #{e.message}"
+    puts "Error occurred when reading training data. Exception message: #{e.message}"
   end
 
-  def read_test_set
-    @test_set = File.readlines(@test_set_file).reject { |line| line.strip.empty? }.map do |line|
+  def read_test_data
+    @test_set = File.readlines(@test_file).reject { |line| line.strip.empty? }.map do |line|
       values = line.split
       IrisInstance.new(values[0].to_f, values[1].to_f, values[2].to_f, values[3].to_f, values[4])
     end
   rescue Exception => e
-    puts "Error occurred when reading test set data. Exception message: #{e.message}"
+    puts "Error occurred when reading test data. Exception message: #{e.message}"
   end
 
   def classify!(instance)
@@ -109,7 +122,7 @@ class KNearestNeighbourClassifier
   end
 
   def identify_majority_class(instances)
-    class_count = instances.map(&:given_label).each_with_object(Hash.new(0)) { |instance, hash| hash[instance] += 1 }
+    class_count = instances.map(&:label).each_with_object(Hash.new(0)) { |instance, hash| hash[instance] += 1 }
     max_count   = class_count.values.max
 
     majority_classes = class_count.select { |klass| class_count[klass] == max_count }.keys
@@ -122,15 +135,13 @@ class KNearestNeighbourClassifier
   end
 
   def initialise_clusters
-    @training_set.each { |instance| instance.given_label = nil } # remove the label first
-
     # two options:
 
-    # 1. randomly select three initial means
-    # @clusters = @training_set.sample(3).map { |mean| [mean.clone, []] }.to_h
+    # 1. randomly select num_means(default: 3) initial means
+    @clusters = @training_set.sample(@num_clusters).map { |mean| [mean.clone, []] }.to_h
 
     # 2. use given indexes
-    @clusters = @training_set.values_at(15, 40, 65).map { |mean| [mean.clone, []] }.to_h
+    # @clusters = @training_set.values_at(15, 40, 65).map { |mean| [mean.clone, []] }.to_h
   end
 
   def converge_clusters
@@ -140,7 +151,7 @@ class KNearestNeighbourClassifier
     loop do
       allocate_instances
 
-      # ============ for testing ===============
+      # ====== for showing the process of iteration ======
       puts "===================================="
       puts "Iteration: #{@iteration_counter}"
 
@@ -151,7 +162,7 @@ class KNearestNeighbourClassifier
           puts "  #{instance}"
         end
       end
-      # ========================================
+      # ==================================================
 
       update_centroids
 
@@ -209,10 +220,10 @@ class KNearestNeighbourClassifier
     end
   end
 
-  def label_training_set_by_clusters # here we label them like "label_1", "label_2", ...
+  def label_training_set_by_clusters # here we label them like "class_1", "class_2", ...
     @clusters.values.each_with_index do |cluster, index|
       cluster.each do |instance|
-        instance.given_label = "label_#{index + 1}"
+        instance.clustered_class = "class_#{index + 1}"
       end
     end
   end

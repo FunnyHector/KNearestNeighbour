@@ -90,7 +90,7 @@ class KNearestNeighbourClassifier
       values = line.split
       IrisInstance.new(values[0].to_f, values[1].to_f, values[2].to_f, values[3].to_f, values[4])
     end
-  rescue Exception => e
+  rescue StandardError => e
     puts "Error occurred when reading training data. Exception message: #{e.message}"
   end
 
@@ -99,7 +99,7 @@ class KNearestNeighbourClassifier
       values = line.split
       IrisInstance.new(values[0].to_f, values[1].to_f, values[2].to_f, values[3].to_f, values[4])
     end
-  rescue Exception => e
+  rescue StandardError => e
     puts "Error occurred when reading test data. Exception message: #{e.message}"
   end
 
@@ -166,12 +166,10 @@ class KNearestNeighbourClassifier
 
       update_centroids
 
-      if @updated
-        @iteration_counter += 1
-        @clusters.each { |_, cluster| cluster.clear }
-      else
-        break
-      end
+      break unless @updated
+
+      @iteration_counter += 1
+      @clusters.each { |_, cluster| cluster.clear }
     end
   end
 

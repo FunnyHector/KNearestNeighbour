@@ -1,8 +1,8 @@
 require "./k_nearest_neighbour_classifier.rb"
 require "./iris_instance.rb"
 
-DEFAULT_TRAINING_SET_FILE = "iris-training.txt"
-DEFAULT_TEST_SET_FILE     = "iris-test.txt"
+DEFAULT_TRAINING_SET_FILE = "iris-training.txt".freeze
+DEFAULT_TEST_SET_FILE     = "iris-test.txt".freeze
 DEFAULT_K_VALUE           = 1
 DEFAULT_NUM_CLUSTER       = 3
 

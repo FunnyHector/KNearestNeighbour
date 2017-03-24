@@ -1,12 +1,13 @@
 require "./k_nearest_neighbour_classifier.rb"
 require "./iris_instance.rb"
 
+# define constants
 DEFAULT_TRAINING_SET_FILE = "iris-training.txt".freeze
 DEFAULT_TEST_SET_FILE     = "iris-test.txt".freeze
 DEFAULT_K_VALUE           = 1
 DEFAULT_NUM_CLUSTER       = 3
 
-# helper methods
+# define helper methods
 def read_file(file)
   File.readlines(file).reject { |line| line.strip.empty? }.map do |line|
     values = line.split
@@ -14,6 +15,16 @@ def read_file(file)
   end
 rescue StandardError => e
   abort("Error occurred when reading \"#{file}\". Exception message: #{e.message}")
+end
+
+def get_y_n_input
+  user_input = STDIN.gets.strip.upcase
+  while user_input != "Y" && user_input != "N"
+    puts "Please only type \"Y/N\":"
+    user_input = STDIN.gets.strip.upcase
+  end
+
+  user_input
 end
 
 # set parameters
@@ -28,13 +39,7 @@ test_set = read_file(test_set_file)
 
 # prompt the user, ask if k-means clustering needs to be done
 puts "Do you want to do k-means clustering? (Y/N)"
-
-user_input = STDIN.gets.strip.upcase
-while user_input != "Y" && user_input != "N"
-  puts "Please only type \"Y/N\":"
-  user_input = STDIN.gets.strip.upcase
-end
-
+user_input = get_y_n_input
 do_cluster = { Y: true, N: false }.fetch(user_input.to_sym)
 
 # show the parameters used

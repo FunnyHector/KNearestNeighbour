@@ -1,8 +1,6 @@
 class KNearestNeighbourClassifier
   FLOAT_TOLERANCE = 0.00000001
 
-  attr_reader :k_value, :sepal_length_range, :sepal_width_range, :petal_length_range, :petal_width_range
-
   def initialize(training_set, test_set, k_value, num_clusters, do_cluster)
     @training_set = training_set
     @test_set     = test_set
@@ -40,7 +38,7 @@ class KNearestNeighbourClassifier
     result << ["No.", "sepal_length", "sepal_width", "petal_length", "petal_width", "label", "classified_class"].join("  ") << "\n"
 
     @test_set.each_with_index do |instance, index|
-      result << ["%02d" % (index + 1), "#{instance.sepal_length}", "#{instance.sepal_width}", "#{instance.petal_length}", "#{instance.petal_width}", "#{instance.label}", "#{instance.classified_class}"].join("  ")
+      result << [format("%02d", index + 1), instance.sepal_length, instance.sepal_width, instance.petal_length, instance.petal_width, instance.label, instance.classified_class].join("  ")
       result << "    # classification mismatched" if instance.classified_class_mismatched?
       result << "\n"
     end
@@ -50,7 +48,7 @@ class KNearestNeighbourClassifier
       result << ["No.", "sepal_length", "sepal_width", "petal_length", "petal_width", "label", "clustered_class"].join("  ") << "\n"
 
       @training_set.each_with_index do |instance, index|
-        result << ["%02d" % (index + 1), "#{instance.sepal_length}", "#{instance.sepal_width}", "#{instance.petal_length}", "#{instance.petal_width}", "#{instance.label}", "#{instance.clustered_class}"].join("  ")
+        result << [format("%02d", index + 1), instance.sepal_length, instance.sepal_width, instance.petal_length, instance.petal_width, instance.label, instance.clustered_class].join("  ")
         result << "\n"
       end
     end
@@ -62,7 +60,7 @@ class KNearestNeighbourClassifier
 
     summary = "".tap do |str|
       str << "\n======================= Summary =======================\n"
-      str << "K Value: #{k_value}\n"
+      str << "K Value: #{@k_value}\n"
       str << "Training data size: #{@training_set.size}\n"
       str << "Test data size: #{test_set_size}\n"
       str << "Number of mismatched classification: #{num_of_mismatch}\n"
@@ -80,7 +78,7 @@ class KNearestNeighbourClassifier
   def classify!(instance)
     k_nearest_neighbours = @training_set.sort_by do |training_instance|
       distance_between(training_instance, instance)
-    end.first(k_value)
+    end.first(@k_value)
 
     instance.classified_class = identify_majority_class(k_nearest_neighbours)
   end
@@ -132,8 +130,8 @@ class KNearestNeighbourClassifier
       @clusters.keys.each_with_index do |mean, index|
         puts "Mean #{index + 1}: #{mean}"
         puts "Cluster: #{@clusters[mean].size} instances"
-        @clusters[mean].each do |instance|
-          puts "  #{instance}"
+        @clusters[mean].each_with_index do |instance, index|
+          puts "  #{format("%02d", index + 1)} #{instance}"
         end
       end
       # ==================================================

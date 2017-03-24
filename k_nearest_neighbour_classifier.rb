@@ -3,17 +3,12 @@ class KNearestNeighbourClassifier
 
   attr_reader :k_value, :sepal_length_range, :sepal_width_range, :petal_length_range, :petal_width_range
 
-  def initialize(training_file, test_file, k_value, num_clusters, do_cluster)
-    @training_file = training_file
-    @test_file     = test_file
+  def initialize(training_set, test_set, k_value, num_clusters, do_cluster)
+    @training_set = training_set
+    @test_set     = test_set
     @k_value       = k_value
     @num_clusters  = num_clusters
     @do_cluster    = do_cluster
-  end
-
-  def read_data
-    read_training_data
-    read_test_data
   end
 
   def estimate_ranges
@@ -40,7 +35,7 @@ class KNearestNeighbourClassifier
     @test_set.each { |instance| classify!(instance) }
   end
 
-  def show_result
+  def result
     result = "========== Results of classification (test set) ==========\n"
     result << ["No.", "sepal_length", "sepal_width", "petal_length", "petal_width", "label", "classified_class"].join("  ") << "\n"
 
@@ -77,31 +72,10 @@ class KNearestNeighbourClassifier
 
     result << summary
 
-    File.write("./output.txt", result)
-    puts result
-    puts "\n=======================================================\n"
-    puts "\"output.txt\" is generated."
+    result
   end
 
   private
-
-  def read_training_data
-    @training_set = File.readlines(@training_file).reject { |line| line.strip.empty? }.map do |line|
-      values = line.split
-      IrisInstance.new(values[0].to_f, values[1].to_f, values[2].to_f, values[3].to_f, values[4])
-    end
-  rescue StandardError => e
-    puts "Error occurred when reading training data. Exception message: #{e.message}"
-  end
-
-  def read_test_data
-    @test_set = File.readlines(@test_file).reject { |line| line.strip.empty? }.map do |line|
-      values = line.split
-      IrisInstance.new(values[0].to_f, values[1].to_f, values[2].to_f, values[3].to_f, values[4])
-    end
-  rescue StandardError => e
-    puts "Error occurred when reading test data. Exception message: #{e.message}"
-  end
 
   def classify!(instance)
     k_nearest_neighbours = @training_set.sort_by do |training_instance|

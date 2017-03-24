@@ -6,31 +6,25 @@ DEFAULT_TEST_SET_FILE     = "iris-test.txt".freeze
 DEFAULT_K_VALUE           = 1
 DEFAULT_NUM_CLUSTER       = 3
 
+# helper methods
+def read_file(file)
+  File.readlines(file).reject { |line| line.strip.empty? }.map do |line|
+    values = line.split
+    IrisInstance.new(values[0].to_f, values[1].to_f, values[2].to_f, values[3].to_f, values[4])
+  end
+rescue StandardError => e
+  abort("Error occurred when reading \"#{file}\". Exception message: #{e.message}")
+end
+
 # set parameters
 training_set_file = ARGV[0].nil? ? DEFAULT_TRAINING_SET_FILE : ARGV[0]
 test_set_file     = ARGV[1].nil? ? DEFAULT_TEST_SET_FILE : ARGV[1]
 k_value           = ARGV[2].nil? ? DEFAULT_K_VALUE : ARGV[2].to_i
 num_cluster       = ARGV[3].nil? ? DEFAULT_NUM_CLUSTER : ARGV[3].to_i
 
-# read in the training file
-begin
-  training_set = File.readlines(training_set_file).reject { |line| line.strip.empty? }.map do |line|
-    values = line.split
-    IrisInstance.new(values[0].to_f, values[1].to_f, values[2].to_f, values[3].to_f, values[4])
-  end
-rescue StandardError => e
-  abort("Error occurred when reading training data. Exception message: #{e.message}")
-end
-
-# read in the test file
-begin
-  test_set = File.readlines(test_set_file).reject { |line| line.strip.empty? }.map do |line|
-    values = line.split
-    IrisInstance.new(values[0].to_f, values[1].to_f, values[2].to_f, values[3].to_f, values[4])
-  end
-rescue StandardError => e
-  abort("Error occurred when reading test data. Exception message: #{e.message}")
-end
+# read in the training file & test file
+training_set = read_file(training_set_file)
+test_set = read_file(test_set_file)
 
 # prompt the user, ask if k-means clustering needs to be done
 puts "Do you want to do k-means clustering? (Y/N)"

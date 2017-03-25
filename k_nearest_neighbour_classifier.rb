@@ -10,12 +10,10 @@ class KNearestNeighbourClassifier
   end
 
   def estimate_ranges
-    all_instances = @training_set + @test_set
-
-    sepal_length_collection = all_instances.map(&:sepal_length)
-    sepal_width_collection  = all_instances.map(&:sepal_width)
-    petal_length_collection = all_instances.map(&:petal_length)
-    petal_width_collection  = all_instances.map(&:petal_width)
+    sepal_length_collection = @training_set.map(&:sepal_length)
+    sepal_width_collection  = @training_set.map(&:sepal_width)
+    petal_length_collection = @training_set.map(&:petal_length)
+    petal_width_collection  = @training_set.map(&:petal_width)
 
     @sepal_length_range = sepal_length_collection.max - sepal_length_collection.min
     @sepal_width_range  = sepal_width_collection.max - sepal_width_collection.min

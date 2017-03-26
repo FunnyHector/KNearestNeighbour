@@ -12,7 +12,7 @@ class IrisInstance
   end
 
   def classified_class_mismatched?
-    if classified_class.nil? # label not given, or not classified yet
+    if @classified_class.nil? # label not given, or not classified yet
       false
     else
       label != classified_class

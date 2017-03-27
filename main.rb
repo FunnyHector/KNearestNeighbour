@@ -17,7 +17,9 @@ rescue StandardError => e
   abort("Error occurred when reading \"#{file}\". Exception message: #{e.message}")
 end
 
-def get_y_n_input
+def get_clustering_or_not_from_user
+  puts "Do you want to do k-means clustering? (Y/N)"
+
   user_input = STDIN.gets.strip.upcase
   while user_input != "Y" && user_input != "N"
     puts "Please only type \"Y/N\":"
@@ -27,20 +29,45 @@ def get_y_n_input
   user_input
 end
 
+def get_k_value_from_user
+  puts "Please enter a K-value (1 - 10):"
+
+  user_input = STDIN.gets.strip.to_i
+  while user_input < 1 || user_input > 10
+    puts "Please enter an allowed K-value (1 - 10):"
+    user_input = STDIN.gets.strip.to_i
+  end
+
+  user_input
+end
+
+def get_num_of_cluster_from_user
+  puts "Please enter a value for number of clusters (greater than 0):"
+
+  user_input = STDIN.gets.strip.to_i
+  while user_input < 1
+    puts "Please enter an allowed int (greater than 0):"
+    user_input = STDIN.gets.strip.to_i
+  end
+
+  user_input
+end
+
 # set parameters
 training_set_file = ARGV[0].nil? ? DEFAULT_TRAINING_SET_FILE : ARGV[0]
 test_set_file     = ARGV[1].nil? ? DEFAULT_TEST_SET_FILE : ARGV[1]
-k_value           = ARGV[2].nil? ? DEFAULT_K_VALUE : ARGV[2].to_i
-num_cluster       = ARGV[3].nil? ? DEFAULT_NUM_CLUSTER : ARGV[3].to_i
 
 # read in the training file & test file
 training_set = read_file(training_set_file)
 test_set = read_file(test_set_file)
 
-# prompt the user, ask if k-means clustering needs to be done
-puts "Do you want to do k-means clustering? (Y/N)"
-user_input = get_y_n_input
+# ask the user for k-value
+k_value = get_k_value_from_user
+
+# ask the user if k-means clustering needs to be done
+user_input = get_clustering_or_not_from_user
 do_cluster = { Y: true, N: false }.fetch(user_input.to_sym)
+num_cluster = get_num_of_cluster_from_user if do_cluster
 
 # show the parameters used
 puts "Running K-Nearest Neighbours with:"

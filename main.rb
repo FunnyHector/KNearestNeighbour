@@ -17,6 +17,20 @@ rescue StandardError => e
   abort("Error occurred when reading \"#{file}\". Exception message: #{e.message}")
 end
 
+def get_KNN_or_clustering_from_user
+  puts "Do you want to do K-Nearest Neighbours or K-Means clustering? (choose 1/2)"
+  puts "  1. K-Nearest Neighbours"
+  puts "  2. K-Means clustering"
+
+  user_input = STDIN.gets.strip.to_i
+  while user_input != 1 && user_input != 2
+    puts "Please only type \"1/2\":"
+    user_input = STDIN.gets.strip.to_i
+  end
+
+  user_input
+end
+
 def get_clustering_or_not_from_user
   puts "Do you want to do k-means clustering? (Y/N)"
 
@@ -53,6 +67,8 @@ def get_num_of_cluster_from_user
   user_input
 end
 
+# =========== Here we go ===================
+
 # set parameters
 training_set_file = ARGV[0].nil? ? DEFAULT_TRAINING_SET_FILE : ARGV[0]
 test_set_file     = ARGV[1].nil? ? DEFAULT_TEST_SET_FILE : ARGV[1]
@@ -61,25 +77,39 @@ test_set_file     = ARGV[1].nil? ? DEFAULT_TEST_SET_FILE : ARGV[1]
 training_set = read_file(training_set_file)
 test_set = read_file(test_set_file)
 
-# ask the user for k-value
-k_value = get_k_value_from_user
+# ask the user which one to do, K-Nearest Neighbours or K-Means clustering
+choice = get_KNN_or_clustering_from_user
 
-# ask the user if k-means clustering needs to be done
-user_input = get_clustering_or_not_from_user
-do_cluster = { Y: true, N: false }.fetch(user_input.to_sym)
-num_cluster = get_num_of_cluster_from_user if do_cluster
+# if do KNN
+if choice == 1
+  # ask the user for k-value
+  k_value = get_k_value_from_user
 
-# show the parameters used
-puts "Running K-Nearest Neighbours with:"
-puts "  K = #{k_value}"
-puts "  Num of clusters: #{num_cluster}" if do_cluster
+  # show the parameters used
+  puts "Running K-Nearest Neighbours with:"
+  puts "  K = #{k_value}"
 
-# initialise the classifier and run magic!
-classifier = KNearestNeighbourClassifier.new(training_set, test_set, k_value, num_cluster, do_cluster)
+  # initialise the classifier and run magic!
+  classifier = KNearestNeighbourClassifier.new(training_set, test_set, k_value, nil, false)
+  classifier.estimate_ranges
+  classifier.classify_test_set
 
-classifier.estimate_ranges
-classifier.cluster_training_set if do_cluster
-classifier.classify_test_set
+# if do clustering
+elsif choice == 2
+  # ask the user the number of clusters
+  num_cluster = get_num_of_cluster_from_user
+
+  # show the parameters used
+  puts "Running K-Means Clustering with:"
+  puts "  Num of clusters: #{num_cluster}"
+
+  # initialise the classifier and run magic!
+  classifier = KNearestNeighbourClassifier.new(training_set, test_set, nil, num_cluster, true)
+  classifier.estimate_ranges
+  classifier.cluster_training_set
+else
+  abort("Unknown choice: \"#{choice}\". Abort.")
+end
 
 # print the result, and write the result into output.txt
 result = classifier.result

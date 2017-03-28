@@ -58,11 +58,11 @@ class KNearestNeighbourClassifier
 
     summary = "".tap do |str|
       str << "\n======================= Summary =======================\n"
-      str << "K Value: #{@k_value}\n"
+      str << "K Value: #{@k_value}\n" unless @k_value.nil?
       str << "Training data size: #{@training_set.size}\n"
       str << "Test data size: #{test_set_size}\n"
-      str << "Number of mismatched classification: #{num_of_mismatch}\n"
-      str << "Classification accuracy: #{accuracy}%\n"
+      str << "Number of mismatched classification: #{num_of_mismatch}\n" unless @k_value.nil?
+      str << "Classification accuracy: #{accuracy}%\n" unless @k_value.nil?
       str << "Iterations of k-means clustering: #{@iteration_counter}\n" if @do_cluster
     end
 

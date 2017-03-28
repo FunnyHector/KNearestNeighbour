@@ -4,9 +4,9 @@ class KNearestNeighbourClassifier
   def initialize(training_set, test_set, k_value, num_clusters, do_cluster)
     @training_set = training_set
     @test_set     = test_set
-    @k_value       = k_value
-    @num_clusters  = num_clusters
-    @do_cluster    = do_cluster
+    @k_value      = k_value
+    @num_clusters = num_clusters
+    @do_cluster   = do_cluster
   end
 
   def estimate_ranges

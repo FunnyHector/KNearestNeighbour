@@ -32,21 +32,24 @@ class KNearestNeighbourClassifier
   end
 
   def result
-    result = "========== Results of classification (test set) ==========\n"
-    result << ["No.", "sepal_length", "sepal_width", "petal_length", "petal_width", "label", "classified_class"].join("  ") << "\n"
-
-    @test_set.each_with_index do |instance, index|
-      result << [format("%02d", index + 1), instance.sepal_length, instance.sepal_width, instance.petal_length, instance.petal_width, instance.label, instance.classified_class].join("  ")
-      result << "    # classification mismatched" if instance.classified_class_mismatched?
-      result << "\n"
-    end
+    result = ""
 
     if @do_cluster
-      result << "\n========== Results of clustering (training set) ==========\n"
+      result << "========== Results of clustering (training set) ==========\n"
       result << ["No.", "sepal_length", "sepal_width", "petal_length", "petal_width", "label", "clustered_class"].join("  ") << "\n"
 
       @training_set.each_with_index do |instance, index|
         result << [format("%02d", index + 1), instance.sepal_length, instance.sepal_width, instance.petal_length, instance.petal_width, instance.label, instance.clustered_class].join("  ")
+        result << "\n"
+      end
+
+    else
+      result = "========== Results of classification (test set) ==========\n"
+      result << ["No.", "sepal_length", "sepal_width", "petal_length", "petal_width", "label", "classified_class"].join("  ") << "\n"
+
+      @test_set.each_with_index do |instance, index|
+        result << [format("%02d", index + 1), instance.sepal_length, instance.sepal_width, instance.petal_length, instance.petal_width, instance.label, instance.classified_class].join("  ")
+        result << "    # classification mismatched" if instance.classified_class_mismatched?
         result << "\n"
       end
     end

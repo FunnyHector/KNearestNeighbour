@@ -94,7 +94,14 @@ if choice == 1
   classifier.estimate_ranges
   classifier.classify_test_set
 
-# if do clustering
+  # print the result, and write the result into output.txt
+  result = classifier.result
+  File.write("./sample_output_KNN.txt", result)
+  puts result
+  puts "\n=======================================================\n"
+  puts "\"sample_output_KNN.txt\" is generated."
+
+  # if do clustering
 elsif choice == 2
   # ask the user the number of clusters
   num_cluster = get_num_of_cluster_from_user
@@ -107,13 +114,13 @@ elsif choice == 2
   classifier = KNearestNeighbourClassifier.new(training_set, test_set, nil, num_cluster, true)
   classifier.estimate_ranges
   classifier.cluster_training_set
+
+  # print the result, and write the result into output.txt
+  result = classifier.result
+  File.write("./sample_output_clustering.txt", result)
+  puts result
+  puts "\n=======================================================\n"
+  puts "\"sample_output_clustering.txt\" is generated."
 else
   abort("Unknown choice: \"#{choice}\". Abort.")
 end
-
-# print the result, and write the result into output.txt
-result = classifier.result
-File.write("./output.txt", result)
-puts result
-puts "\n=======================================================\n"
-puts "\"output.txt\" is generated."

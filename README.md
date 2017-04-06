@@ -1,15 +1,15 @@
 # KNearestNeighbour
 
-A uni assignment for AI course.
+To use default parameters, just run "ruby main.rb".
 
-If you have ruby installed, Just run "ruby main.rb"
+Arguments can be provided as "ruby main.rb [training_file] [test_file]".
 
-Arguments can be provided as "ruby main.rb [training_file] [test_file] [k_value] [num_cluster]", where [k_value] and [num_cluster] are integer.
+Example of how to run with parameters:
+(just copy it into console for convenience)
+% ruby main.rb iris-training.txt iris-test.txt
 
 All arguments are optional. If they are not provided, default values will be used.
 
 Default parameters:
-- training_file: "iris-training.txt"
-- test_file: "iris-test.txt"
-- k_value: 1
-- num_cluster: 3
+- training_file:   "iris-training.txt"
+- test_file:       "iris-test.txt"
